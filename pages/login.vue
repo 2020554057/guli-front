@@ -52,7 +52,7 @@
               id="weixin"
               class="weixin"
               target="_blank"
-              href="http://qy.free.idcfengye.com/api/ucenter/weixinLogin/login"
+              href="http://localhost:8160/api/ucenter/wx/login"
               ><i class="iconfont icon-weixin"
             /></a>
           </li>
