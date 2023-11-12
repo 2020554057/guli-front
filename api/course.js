@@ -16,5 +16,14 @@ export default {
             method: 'post',
             data: searchObj
         })
-    }
+    },
+
+    //课程详情的方法
+    getCourseInfo(id) {
+        return request({
+            url: `/eduservice/courseFront/getFrontCourseInfo/${id}`,
+            method: 'get'
+        })
+    },
+
 }
