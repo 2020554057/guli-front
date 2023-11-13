@@ -6,7 +6,8 @@
         <a href="#" title class="c-999 fsize14">首页</a>
         \
         <a href="#" title class="c-999 fsize14">
-          {{courseWebVo.subjectLevelOne}}</a>
+          {{ courseWebVo.subjectLevelOne }}</a
+        >
         \
         <span class="c-333 fsize14">{{ courseWebVo.subjectLevelTwo }}</span>
       </section>
@@ -187,6 +188,135 @@
           </div>
         </aside>
         <div class="clear"></div>
+        <!-- 评论模板开始 -->
+        <div class="mt50 commentHtml">
+          <div>
+            <h6 class="c-c-content c-infor-title" id="i-art-comment">
+              <span class="commentTitle">课程评论</span>
+            </h6>
+            <section class="lh-bj-list pr mt20 replyhtml">
+              <ul>
+                <li class="unBr">
+                  <aside class="noter-pic">
+                    <img
+                      width="50"
+                      height="50"
+                      class="picImg"
+                      src="~/assets/img/avatar-boy.gif"
+                    />
+                  </aside>
+                  <div class="of">
+                    <section class="n-reply-wrap">
+                      <fieldset>
+                        <textarea
+                          name=""
+                          v-model="comment.content"
+                          placeholder="输入您要评论的文字"
+                          id="commentContent"
+                        ></textarea>
+                      </fieldset>
+                      <p class="of mt5 tar pl10 pr10">
+                        <span class="fl"
+                          ><tt
+                            class="c-red commentContentmeg"
+                            style="display: none"
+                          ></tt
+                        ></span>
+                        <input
+                          type="button"
+                          @click="addComment()"
+                          value="回复"
+                          class="lh-reply-btn"
+                        />
+                      </p>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </section>
+            <section class="">
+              <section class="question-list lh-bj-list pr">
+                <ul class="pr10">
+                  <li v-for="comment in data.list" :key="comment.id">
+                    <aside class="noter-pic">
+                      <img
+                        width="50"
+                        height="50"
+                        class="picImg"
+                        :src="comment.avatar"
+                      />
+                    </aside>
+                    <div class="of">
+                      <span class="fl">
+                        <font class="fsize12 c-blue">{{
+                          comment.nickname
+                        }}</font>
+                        <font class="fsize12 c-999 ml5">评论：</font></span
+                      >
+                    </div>
+                    <div class="noter-txt mt5">
+                      <p>{{ comment.content }}</p>
+                    </div>
+                    <div class="of mt5">
+                      <span class="fr"
+                        ><font class="fsize12 c-999ml5">{{
+                          comment.gmtCreate
+                        }}</font></span
+                      >
+                    </div>
+                  </li>
+                </ul>
+              </section>
+            </section>
+            <!-- 公共分页 开始 -->
+            <div class="paging">
+              <!-- undisable这个class是否存在，取决于数据属性hasPrevious -->
+              <a
+                :class="{ undisable: !data.hasPrevious }"
+                href="#"
+                title="首页"
+                @click.prevent="gotoPage(1)"
+                >首</a
+              >
+              <a
+                :class="{ undisable: !data.hasPrevious }"
+                href="#"
+                title="前一页"
+                @click.prevent="gotoPage(data.current - 1)"
+                >&lt;</a
+              >
+              <a
+                v-for="page in data.pages"
+                :key="page"
+                :class="{
+                  current: data.current == page,
+                  undisable: data.current == page,
+                }"
+                :title="'第' + page + '页'"
+                href="#"
+                @click.prevent="gotoPage(page)"
+                >{{ page }}</a
+              >
+              <a
+                :class="{ undisable: !data.hasNext }"
+                href="#"
+                title="后一页"
+                @click.prevent="gotoPage(data.current + 1)"
+                >&gt;</a
+              >
+              <a
+                :class="{ undisable: !data.hasNext }"
+                href="#"
+                title="末页"
+                @click.prevent="gotoPage(data.pages)"
+                >末</a
+              >
+              <div class="clear" />
+            </div>
+            <!-- 公共分页 结束 -->
+            <!-- 评论模板结束 -->
+          </div>
+        </div>
       </div>
     </section>
     <!-- /课程详情 结束 -->
@@ -195,8 +325,66 @@
 
 <script>
 import courseApi from "@/api/course";
+import comment from "@/api/comment";
 
 export default {
+  data() {
+    return {
+      chapterList: [],
+      course: {
+        courseId: "",
+      },
+      data: {},
+      page: 1,
+      limit: 4,
+      total: 10,
+      comment: {
+        content: "",
+        courseId: "",
+        teacherId: "",
+      },
+      isbuyCourse: false,
+    };
+  },
+  created() {
+    this.course.courseId = this.$route.params.id;
+    //获取课程详细信息
+    //this.getCourseInfo();
+    this.initComment();
+  },
+  methods: {
+    initComment() {
+      comment
+        .getPageList(this.page, this.limit, this.course.courseId)
+        .then((response) => {
+          this.data = response.data.data;
+        });
+    },
+    addComment() {
+      this.comment.courseId = this.course.courseId;
+      this.comment.teacherId = this.course.teacherId;
+      comment.addComment(this.comment).then((response) => {
+        if (response.data.code == 20001) {
+          this.$message({
+            message: "请先登录",
+            type: "error",
+          });
+        } else {
+          this.$message({
+            message: "评论成功",
+            type: "success",
+          });
+          this.comment.content = "";
+          this.initComment();
+        }
+      });
+    },
+    gotoPage(page) {
+      comment.getPageList(page, this.limit, this.courseId).then((response) => {
+        this.data = response.data.data;
+      });
+    },
+  },
   asyncData({ params, error }) {
     return courseApi.getCourseInfo(params.id).then((response) => {
       return {
