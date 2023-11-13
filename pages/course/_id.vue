@@ -15,6 +15,8 @@
         <article class="c-v-pic-wrap" style="height: 357px">
           <section class="p-h-video-box" id="videoPlay">
             <img
+              height="357px"
+              width="100%"
               :src="courseWebVo.cover"
               :alt="courseWebVo.title"
               class="dis c-v-pic"
@@ -44,12 +46,18 @@
               </span>
             </section>
             <section class="c-attr-mt">
-              <a href="#" title="立即观看" class="comm-btn c-btn-3">立即观看</a>
+              <a
+                @click="createOrders()"
+                href="#"
+                title="立即购买"
+                class="comm-btn c-btn-3"
+                >立即购买</a
+              >
             </section>
           </section>
         </aside>
         <aside class="thr-attr-box">
-          <ol class="thr-attr-ol clearfix">
+          <ol class="thr-attr-ol ">
             <li>
               <p>&nbsp;</p>
               <aside>
@@ -326,6 +334,7 @@
 <script>
 import courseApi from "@/api/course";
 import comment from "@/api/comment";
+import orderApi from "@/api/order";
 
 export default {
   data() {
@@ -353,6 +362,15 @@ export default {
     this.initComment();
   },
   methods: {
+    //生成订单
+    createOrders() {
+      orderApi.createOrders(this.courseId).then((response) => {
+        //返回订单id
+        //生成订单后，跳转订单显示页面
+        this.$router.push({ path: "/orders/" + response.data.data.orderId });
+      });
+    },
+    //添加评论
     initComment() {
       comment
         .getPageList(this.page, this.limit, this.course.courseId)
@@ -380,6 +398,10 @@ export default {
       });
     },
     gotoPage(page) {
+      //修复小bug
+      if (page > this.data.pages) {
+        page = this.data.pages;
+      }
       comment.getPageList(page, this.limit, this.courseId).then((response) => {
         this.data = response.data.data;
       });
@@ -390,6 +412,7 @@ export default {
       return {
         courseWebVo: response.data.data.courseWebVo,
         chapterVideoList: response.data.data.chapterVideoList,
+        courseId: params.id,
       };
     });
   },
