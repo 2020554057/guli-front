@@ -45,7 +45,19 @@
                 <a class="c-fff vam" title="收藏" href="#">收藏</a>
               </span>
             </section>
-            <section class="c-attr-mt">
+            <section
+              v-if="isBuy || Number(courseWebVo.price) === 0"
+              class="c-attr-mt"
+            >
+              <a
+                @click="watchNow()"
+                href="#"
+                title="立即观看"
+                class="comm-btn c-btn-3"
+                >立即观看</a
+              >
+            </section>
+            <section v-else class="c-attr-mt">
               <a
                 @click="createOrders()"
                 href="#"
@@ -57,7 +69,7 @@
           </section>
         </aside>
         <aside class="thr-attr-box">
-          <ol class="thr-attr-ol ">
+          <ol class="thr-attr-ol">
             <li>
               <p>&nbsp;</p>
               <aside>
@@ -352,16 +364,35 @@ export default {
         courseId: "",
         teacherId: "",
       },
-      isbuyCourse: false,
+      courseWebVo: {},
+      chapterVideoList: [],
+      isBuy: false,
     };
   },
   created() {
+    //获取路径中课程的id
     this.course.courseId = this.$route.params.id;
     //获取课程详细信息
-    //this.getCourseInfo();
+    this.initCourseInfo();
+    //获取评论信息
     this.initComment();
   },
   methods: {
+    //立即观看
+    watchNow() {
+      this.$message({
+        type: "success",
+        message: "点击下方小节，立即观看！",
+      });
+    },
+    //查询课程详细信息
+    initCourseInfo() {
+      courseApi.getCourseInfo(this.courseId).then((response) => {
+        (this.courseWebVo = response.data.data.courseWebVo),
+          (this.chapterVideoList = response.data.data.chapterVideoList),
+          (this.isBuy = response.data.data.isBuy);
+      });
+    },
     //生成订单
     createOrders() {
       orderApi.createOrders(this.courseId).then((response) => {
@@ -397,6 +428,7 @@ export default {
         }
       });
     },
+    //对评论进行分页
     gotoPage(page) {
       //修复小bug
       if (page > this.data.pages) {
@@ -407,14 +439,9 @@ export default {
       });
     },
   },
+  //异步调用，从路径中获取课程id
   asyncData({ params, error }) {
-    return courseApi.getCourseInfo(params.id).then((response) => {
-      return {
-        courseWebVo: response.data.data.courseWebVo,
-        chapterVideoList: response.data.data.chapterVideoList,
-        courseId: params.id,
-      };
-    });
+    return { courseId: params.id };
   },
 };
 </script>
